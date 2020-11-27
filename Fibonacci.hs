@@ -43,10 +43,15 @@ readW :: Wheel a -> a
 readW ((y:ys),_) = y
 
 -- wheel containing no elements
---emptyW :: Wheel a
+emptyW :: Wheel a
+emptyW = ([],[])
 
 -- test if a wheel is empty 
 --isEmptyW :: Wheel a -> Bool
+--isEmptyW w = let w1 = emptyW
+--             in
+--               if w == w1 then True
+--                          else False 
 
 -- move the head to the next element clockwise
 --rightW :: Wheel a -> Wheel a
