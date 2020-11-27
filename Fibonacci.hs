@@ -40,28 +40,29 @@ type Wheel a = ([a],[a])
 
 -- read the head element
 readW :: Wheel a -> a
+readW ((y:ys),_) = y
 
 -- wheel containing no elements
-emptyW :: Wheel a
+--emptyW :: Wheel a
 
 -- test if a wheel is empty 
-isEmptyW :: Wheel a -> Bool
+--isEmptyW :: Wheel a -> Bool
 
 -- move the head to the next element clockwise
-rightW :: Wheel a -> Wheel a
+--rightW :: Wheel a -> Wheel a
 
 -- move the head to the next element anti-clockwise
-leftW :: Wheel a -> Wheel a
+--leftW :: Wheel a -> Wheel a
 
 -- insert a new element the the left of the head and set as new head
-insertW :: a -> Wheel a -> Wheel a
+--insertW :: a -> Wheel a -> Wheel a
 
 -- extract and delete the head,  move the head to the next right
-extractW :: Wheel a -> (a, Wheel a)
+--extractW :: Wheel a -> (a, Wheel a)
 
 -- concatenate two wheels
 --   the new head is the head of the first (if non-empty)
-concatW :: Wheel a -> Wheel a -> Wheel a
+--concatW :: Wheel a -> Wheel a -> Wheel a
 
 
 -- FIBONACCI HEAPS
@@ -83,21 +84,21 @@ type FHNode a = (a, Int, FibHeap a)
 
 
 -- the Fibonacci heap with no elements
-emptyFH :: FibHeap a
+--emptyFH :: FibHeap a
 
 -- test if a heap is empty
-isEmptyFH :: FibHeap a -> Bool
+--isEmptyFH :: FibHeap a -> Bool
 
 -- Reading the minimum element
 --  We assume that the head is heap-ordered,
 --  so the minimum is the head of the root wheel
-minimumFH :: FibHeap a -> a
+--minimumFH :: FibHeap a -> a
 
 -- Inserting a new element into the heap
-insertFH :: Ord a => a -> FibHeap a -> FibHeap a
+--insertFH :: Ord a => a -> FibHeap a -> FibHeap a
 
 -- Merging two Fibonacci Heaps
-unionFH :: Ord a => FibHeap a -> FibHeap a -> FibHeap a
+--unionFH :: Ord a => FibHeap a -> FibHeap a -> FibHeap a
 
 -- Extracting the minimum from a heap
-extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
+--extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
