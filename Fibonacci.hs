@@ -47,23 +47,29 @@ emptyW :: Wheel a
 emptyW = ([],[])
 
 -- test if a wheel is empty 
---isEmptyW :: Wheel a -> Bool
---isEmptyW w = let w1 = emptyW
---             in
---               if w == w1 then True
---                          else False 
+isEmptyW :: Wheel a -> Bool
+isEmptyW (x,y) = if null x && null y then True
+                                     else False              
 
 -- move the head to the next element clockwise
---rightW :: Wheel a -> Wheel a
+rightW :: Wheel a -> Wheel a
+rightW ((x:xs),(y:ys)) = let leny = length ys `div` 2
+                         in
+                           (xs ++ reverse (drop leny ys), [x] ++ [y] ++ take leny ys)
 
 -- move the head to the next element anti-clockwise
---leftW :: Wheel a -> Wheel a
+leftW :: Wheel a -> Wheel a
+leftW ((x:xs),(y:ys)) = let lenx = length xs `div` 2                            
+                        in
+                          ([y] ++ [x] ++ take lenx xs, ys ++ reverse (drop lenx xs))
 
 -- insert a new element the the left of the head and set as new head
---insertW :: a -> Wheel a -> Wheel a
+insertW :: a -> Wheel a -> Wheel a
+insertW n (x,y) = ([n] ++ x, y)
 
 -- extract and delete the head,  move the head to the next right
---extractW :: Wheel a -> (a, Wheel a)
+extractW :: Wheel a -> (a, Wheel a)
+extractW ((x:xs),y) = (x, ((xs),y))
 
 -- concatenate two wheels
 --   the new head is the head of the first (if non-empty)
@@ -107,3 +113,8 @@ type FHNode a = (a, Int, FibHeap a)
 
 -- Extracting the minimum from a heap
 --extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
+
+{-
+TEST DATA:
+([2,3,5],[8,4,0])
+-}
