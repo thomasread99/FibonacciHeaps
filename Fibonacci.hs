@@ -53,15 +53,12 @@ isEmptyW (x,y) = if null x && null y then True
 
 -- move the head to the next element clockwise
 rightW :: Wheel a -> Wheel a
-rightW ((x:xs),(y:ys)) = let leny = length ys `div` 2
-                         in
-                           (xs ++ reverse (drop leny ys), [x] ++ [y] ++ take leny ys)
+rightW ((x:xs),[]) = (xs, [x])
+rightW ((x:xs),y) = (xs, [x] ++ y) 
 
 -- move the head to the next element anti-clockwise
 leftW :: Wheel a -> Wheel a
-leftW ((x:xs),(y:ys)) = let lenx = length xs `div` 2                            
-                        in
-                          ([y] ++ [x] ++ take lenx xs, ys ++ reverse (drop lenx xs))
+leftW (x,(y:ys)) = ([y] ++ x, ys)
 
 -- insert a new element the the left of the head and set as new head
 insertW :: a -> Wheel a -> Wheel a
