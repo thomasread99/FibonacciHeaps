@@ -70,7 +70,10 @@ extractW ((x:xs),y) = (x, ((xs),y))
 
 -- concatenate two wheels
 --   the new head is the head of the first (if non-empty)
---concatW :: Wheel a -> Wheel a -> Wheel a
+concatW :: Wheel a -> Wheel a -> Wheel a
+concatW n ([],[]) = n
+concatW ([],[]) n = n
+concatW (x,y) ((x1:xs),y2) = (x ++ reverse y ++ [x1], y2 ++ reverse xs)
 
 
 -- FIBONACCI HEAPS
