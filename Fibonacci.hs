@@ -95,21 +95,35 @@ type FHNode a = (a, Int, FibHeap a)
 
 
 -- the Fibonacci heap with no elements
---emptyFH :: FibHeap a
+emptyFH :: FibHeap a
+emptyFH = FHeap 0 ([],[])
 
 -- test if a heap is empty
---isEmptyFH :: FibHeap a -> Bool
+isEmptyFH :: FibHeap a -> Bool
+isEmptyFH (FHeap n (x,y)) = if null x && null y then True
+                                                else False
 
 -- Reading the minimum element
 --  We assume that the head is heap-ordered,
 --  so the minimum is the head of the root wheel
---minimumFH :: FibHeap a -> a
+minimumFH :: FibHeap a -> a
+minimumFH (FHeap n (x,y)) = extractFirst(head x)
+
+extractFirst :: (a,b,c) -> a
+extractFirst (a,_,_) = a
 
 -- Inserting a new element into the heap
---insertFH :: Ord a => a -> FibHeap a -> FibHeap a
+insertFH :: Ord a => a -> FibHeap a -> FibHeap a
+insertFH x h@(FHeap n w) = if (isEmptyW w) then (FHeap 1 ([(x,0,emptyFH)],[]))
+                                           else if x <= minimumFH h then (FHeap (n+1) (insertW (x,0,emptyFH) w))
+                                                                    else (FHeap (n+1) (rightW (insertW (x,0,emptyFH) w)))                             
 
 -- Merging two Fibonacci Heaps
---unionFH :: Ord a => FibHeap a -> FibHeap a -> FibHeap a
+unionFH :: Ord a => FibHeap a -> FibHeap a -> FibHeap a
+unionFH h1@(FHeap n1 w1) h2@(FHeap n2 w2) = if isEmptyFH h1 then h2
+                                                            else if isEmptyFH h2 then h1
+                                                                                 else if minimumFH h1 <= minimumFH h2 then (FHeap (n1+n2) (concatW w1 w2))
+                                                                                                                      else (FHeap (n1+n2) (concatW w2 w1))
 
 -- Extracting the minimum from a heap
 --extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
