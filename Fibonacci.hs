@@ -23,7 +23,10 @@
 
 -}
 
+
 module Fibonacci where
+
+import Data.Map
 
 -- WHEELS
 
@@ -40,7 +43,7 @@ type Wheel a = ([a],[a])
 
 -- read the head element
 readW :: Wheel a -> a
-readW ((y:ys),_) = y
+readW ((x:xs),_) = x
 
 -- wheel containing no elements
 emptyW :: Wheel a
@@ -48,12 +51,11 @@ emptyW = ([],[])
 
 -- test if a wheel is empty 
 isEmptyW :: Wheel a -> Bool
-isEmptyW (x,y) = if null x && null y then True
+isEmptyW (x,y) = if Prelude.null x && Prelude.null y then True
                                      else False              
 
 -- move the head to the next element clockwise
 rightW :: Wheel a -> Wheel a
-rightW ((x:xs),[]) = (xs, [x])
 rightW ((x:xs),y) = (xs, [x] ++ y) 
 
 -- move the head to the next element anti-clockwise
@@ -73,7 +75,8 @@ extractW ((x:xs),y) = (x, ((xs),y))
 concatW :: Wheel a -> Wheel a -> Wheel a
 concatW n ([],[]) = n
 concatW ([],[]) n = n
-concatW (x,y) ((x1:xs),y2) = (x ++ reverse y ++ [x1], y2 ++ reverse xs)
+--concatW (x,y) (x2,y2) = (x ++ reverse y, y2 ++ reverse x2)
+concatW (x,y) (x2,y2) = (x ++ y, x2 ++ y2)
 
 
 -- FIBONACCI HEAPS
@@ -100,7 +103,7 @@ emptyFH = FHeap 0 ([],[])
 
 -- test if a heap is empty
 isEmptyFH :: FibHeap a -> Bool
-isEmptyFH (FHeap n (x,y)) = if null x && null y then True
+isEmptyFH (FHeap n (x,y)) = if Prelude.null x && Prelude.null y then True
                                                 else False
 
 -- Reading the minimum element
@@ -126,7 +129,14 @@ unionFH h1@(FHeap n1 w1) h2@(FHeap n2 w2) = if isEmptyFH h1 then h2
                                                                                                                       else (FHeap (n1+n2) (concatW w2 w1))
 
 -- Extracting the minimum from a heap
---extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
+extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
+extractFH (FHeap n w) = let ((x, FHeap nx wx), w') = extractW w
+                        in (x, consolidate (FHeap n (concatW wx w')))
+
+-- Auxiliary function to link two nodes
+link :: FHNode a -> FHNode a -> FHNode a
+link x@(kx,dx,hx) y@(ky,dy,hy) = if kx <= ky then (kx, dx+1, (FHeap 1 (insertN y hx)))
+                                             else (ky, dx+1, (FHeap 1 (insertN x hy)))
 
 {-
 TEST DATA:
