@@ -96,6 +96,7 @@ type FHNode a = (a, Int, FibHeap a)
 
 -- (x,d,h) is an element with value x, degree d and sub-heap h
 
+type NArray a = Map Int (FHNode a) 
 
 -- the Fibonacci heap with no elements
 emptyFH :: FibHeap a
@@ -129,15 +130,41 @@ unionFH h1@(FHeap n1 w1) h2@(FHeap n2 w2) = if isEmptyFH h1 then h2
                                                                                                                       else (FHeap (n1+n2) (concatW w2 w1))
 
 -- Extracting the minimum from a heap
-extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
+{-extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
+-- Add if the minimum was the only element of the wheel
 extractFH (FHeap n w) = let ((x, FHeap nx wx), w') = extractW w
-                        in (x, consolidate (FHeap n (concatW wx w')))
+                        in (x, consolidate (FHeap n (concatW wx w')))-}
 
 -- Auxiliary function to link two nodes
 link :: FHNode a -> FHNode a -> FHNode a
 link x@(kx,dx,hx) y@(ky,dy,hy) = if kx <= ky then (kx, dx+1, (FHeap 1 (insertN y hx)))
                                              else (ky, dx+1, (FHeap 1 (insertN x hy)))
 
+
+ {- to insert a node into heap and return a wheel, that node can contain multiple elements
+insertN (1,0, FHeap 0 ([],[])) h-}
+insertN :: FHNode a -> FHeap a -> Wheel a 
+insertN x h@(FHeap n w) = if (isEmptyW w) then ([x],[])
+                                          else --Compare the node to the minimum in the heap and insert as appropriate
+
+-- Auxiliary function to insert a new node into NArray
+insNA :: FHNode a -> NArray a -> NArray a
+insNA x@(kx,dx,hx) m = if isNothing (Data.Map.lookup dx m) then insert dx x m
+                                                           --Complete this when link is finished                                                           
+                                                           else m
+
+isNothing :: Maybe a -> Bool
+isNothing Nothing = True
+isNothing _ = False
+
+test :: NArray a -> NArray a
+test m = m
+
+-- Auxiliary function to transform a wheel of nodes into an array
+--makeNA :: (Wheel (FHNode a)) -> NArray
+--makeNA w = if (isEmptyW w) then NArray.empty
+--                           else let (x,w') = extractW w
+--                                in NArray.empty
 {-
 TEST DATA:
 ([2,3,5],[8,4,0])
