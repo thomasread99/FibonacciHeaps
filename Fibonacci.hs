@@ -173,8 +173,8 @@ insNA x@(kx,dx,hx) m = if isNothing (Data.Map.lookup dx m) then insert dx x m
 
 -- Auxiliary function to link two nodes
 link :: Ord a => FHNode a -> FHNode a -> FHNode a
-link x@(kx,dx,hx) y@(ky,dy,hy) = if kx <= ky then (kx, dx+1, FHeap 1 (insertN y hx))
-                                             else (ky, dx+1, FHeap 1 (insertN x hy))                                                           
+link x@(kx,dx,(FHeap nx wx)) y@(ky,dy,(FHeap ny wy)) = if kx <= ky then (kx, dx+1, FHeap (nx+ny) (insertN y (FHeap nx wx)))
+                                                                   else (ky, dx+1, FHeap (ny+nx) (insertN x (FHeap ny wy)))                                                           
 
 -- Auxiliary function to insert a node into a heap and return a wheel
 insertN :: Ord a => FHNode a -> FibHeap a -> Wheel (FHNode a) 
