@@ -52,15 +52,25 @@ emptyW = ([],[])
 -- test if a wheel is empty 
 isEmptyW :: Wheel a -> Bool
 isEmptyW (x,y) = if Prelude.null x && Prelude.null y then True
-                                     else False              
+                                                     else False              
 
 -- move the head to the next element clockwise
 rightW :: Wheel a -> Wheel a
-rightW ((x:xs),y) = (xs, [x] ++ y) 
+rightW ([],[]) = error "Wheel is empty"
+rightW ([],_) = error "No head of list set"
+rightW ((x:xs),y) = case xs of [] -> case y of [] -> ([],[x])
+                                               ys -> case tail ys of [] -> (ys, [x])
+                                                                     ts -> (reverse ts, [x] ++ [head y])
+                               zs -> case y of [] -> (zs,[x])
+                                               ys -> (zs, [x] ++ ys)  
 
 -- move the head to the next element anti-clockwise
 leftW :: Wheel a -> Wheel a
-leftW (x,(y:ys)) = ([y] ++ x, ys)
+leftW ([],[]) = error "Wheel is empty"
+leftW ([],_) = error "No head of list set"
+leftW ((x:xs),y) = case y of [] -> case xs of [] -> ([x],[])
+                                              xs -> ([head (reverse xs)] ++ [x] ++ tail (reverse xs), [])
+                             y -> ([head y] ++ (x:xs), tail y)
 
 -- insert a new element the the left of the head and set as new head
 insertW :: a -> Wheel a -> Wheel a
@@ -68,15 +78,15 @@ insertW n (x,y) = ([n] ++ x, y)
 
 -- extract and delete the head,  move the head to the next right
 extractW :: Wheel a -> (a, Wheel a)
-extractW ((x:xs),y) = (x, ((xs),y))
+extractW w = let (x,(y:ys)) = rightW w
+             in (y,(x,ys))
 
 -- concatenate two wheels
 --   the new head is the head of the first (if non-empty)
 concatW :: Wheel a -> Wheel a -> Wheel a
 concatW n ([],[]) = n
 concatW ([],[]) n = n
---concatW (x,y) (x2,y2) = (x ++ reverse y, y2 ++ reverse x2)
-concatW (x,y) (x2,y2) = (x ++ y, x2 ++ y2)
+concatW (x,y) (x2,y2) = (x ++ reverse y, y2 ++ reverse x2)
 
 
 -- FIBONACCI HEAPS
@@ -105,7 +115,7 @@ emptyFH = FHeap 0 ([],[])
 -- test if a heap is empty
 isEmptyFH :: FibHeap a -> Bool
 isEmptyFH (FHeap n (x,y)) = if Prelude.null x && Prelude.null y then True
-                                                else False
+                                                                else False
 
 -- Reading the minimum element
 --  We assume that the head is heap-ordered,
@@ -113,6 +123,7 @@ isEmptyFH (FHeap n (x,y)) = if Prelude.null x && Prelude.null y then True
 minimumFH :: FibHeap a -> a
 minimumFH (FHeap n (x,y)) = extractFirst(head x)
 
+-- Auxiliary function to extract the first element of a triple
 extractFirst :: (a,b,c) -> a
 extractFirst (a,_,_) = a
 
@@ -130,42 +141,57 @@ unionFH h1@(FHeap n1 w1) h2@(FHeap n2 w2) = if isEmptyFH h1 then h2
                                                                                                                       else (FHeap (n1+n2) (concatW w2 w1))
 
 -- Extracting the minimum from a heap
-{-extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
--- Add if the minimum was the only element of the wheel
-extractFH (FHeap n w) = let ((x, FHeap nx wx), w') = extractW w
-                        in (x, consolidate (FHeap n (concatW wx w')))-}
+extractFH :: Ord a => FibHeap a -> (a,FibHeap a)
+extractFH (FHeap n w) = let ((x, ny, FHeap nx wx), w') = extractW w
+                        in (x, consolidate (FHeap (n-1) (concatW wx w')))
 
--- Auxiliary function to link two nodes
-link :: FHNode a -> FHNode a -> FHNode a
-link x@(kx,dx,hx) y@(ky,dy,hy) = if kx <= ky then (kx, dx+1, (FHeap 1 (insertN y hx)))
-                                             else (ky, dx+1, (FHeap 1 (insertN x hy)))
+-- Auxiliary function to reorganise the structure of the heap and find the new minimum
+consolidate :: Ord a => FibHeap a -> FibHeap a
+consolidate (FHeap n w) = FHeap n (wheelNA (makeNA w))
 
+-- Auxiliary function to put the values in NArray back into a wheel
+wheelNA :: Ord a => NArray a -> Wheel (FHNode a)
+wheelNA m = Prelude.foldr (insNode) ([],[]) m
 
- {- to insert a node into heap and return a wheel, that node can contain multiple elements
-insertN (1,0, FHeap 0 ([],[])) h-}
-insertN :: FHNode a -> FHeap a -> Wheel a 
-insertN x h@(FHeap n w) = if (isEmptyW w) then ([x],[])
-                                          else --Compare the node to the minimum in the heap and insert as appropriate
+-- Auxiliary function to insert a node into a wheel
+insNode :: Ord a => FHNode a -> Wheel (FHNode a) -> Wheel (FHNode a)
+insNode x (wx,wy) = if (isEmptyW (wx,wy)) || (extractFirst x <= extractFirst (head wx)) then (insertW x (wx,wy))
+                                                                                        else (rightW (insertW x (wx,wy)))
+
+-- Auxiliary function to transform a wheel of nodes into an array
+makeNA :: Ord a => (Wheel (FHNode a)) -> NArray a
+makeNA w = if (isEmptyW w) then Data.Map.empty
+                           else let (x,w') = extractW w
+                                in insNA x (makeNA w')   
 
 -- Auxiliary function to insert a new node into NArray
-insNA :: FHNode a -> NArray a -> NArray a
-insNA x@(kx,dx,hx) m = if isNothing (Data.Map.lookup dx m) then insert dx x m
-                                                           --Complete this when link is finished                                                           
-                                                           else m
+insNA :: Ord a => FHNode a -> NArray a -> NArray a
+insNA x@(kx,dx,hx) m = if isNothing (Data.Map.lookup dx m) then insert dx x m                                                                                                                     
+                                                           else insNA (link x (extractNode (Data.Map.lookup dx m))) (delete dx m)   
 
+-- Auxiliary function to link two nodes
+link :: Ord a => FHNode a -> FHNode a -> FHNode a
+link x@(kx,dx,hx) y@(ky,dy,hy) = if kx <= ky then (kx, dx+1, FHeap 1 (insertN y hx))
+                                             else (ky, dx+1, FHeap 1 (insertN x hy))                                                           
+
+-- Auxiliary function to insert a node into a heap and return a wheel
+insertN :: Ord a => FHNode a -> FibHeap a -> Wheel (FHNode a) 
+insertN x@(kx,dx,hx) h@(FHeap n (wx,wy)) = if (isEmptyW (wx,wy)) then ([x],[])
+                                                                 else if kx < minimumFH h then insertW x (wx,wy)
+                                                                                          else (wx++[x],wy) 
+
+-- Auxiliary function to extract a node value from a Maybe
+extractNode :: Maybe (FHNode a) -> FHNode a
+extractNode (Just n) = n
+
+-- Auxiliary function to check if a location in NArray is nothing
 isNothing :: Maybe a -> Bool
 isNothing Nothing = True
 isNothing _ = False
 
-test :: NArray a -> NArray a
-test m = m
 
--- Auxiliary function to transform a wheel of nodes into an array
---makeNA :: (Wheel (FHNode a)) -> NArray
---makeNA w = if (isEmptyW w) then NArray.empty
---                           else let (x,w') = extractW w
---                                in NArray.empty
-{-
-TEST DATA:
-([2,3,5],[8,4,0])
--}
+
+
+
+
+
