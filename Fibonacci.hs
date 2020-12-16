@@ -80,6 +80,8 @@ insertW n (x,y) = ([n] ++ x, y)
 
 -- extract and delete the head,  move the head to the next right
 extractW :: Wheel a -> (a, Wheel a)
+extractW ([],[]) = error "Wheel is empty"
+extractW ([],_) = error "No head of list set"
 extractW w = let (x,(y:ys)) = rightW w
              in (y,(x,ys))
 
@@ -123,9 +125,11 @@ isEmptyFH (FHeap n (x,y)) = if Prelude.null x && Prelude.null y then True
 --  We assume that the head is heap-ordered,
 --  so the minimum is the head of the root wheel
 minimumFH :: FibHeap a -> a
-minimumFH (FHeap n (x,y)) = extractFirst(head x)
+minimumFH (FHeap n (x,y)) = if isEmptyFH (FHeap n (x,y)) then error "Fibonacci heap is empty"
+                                                         else if Prelude.null x then error "No head of heap set"
+                                                                                else extractFirst(head x)
 
--- Auxiliary function to extract the first element of a triple
+-- Auxiliary function to extract the first element of a triple tuple
 extractFirst :: (a,b,c) -> a
 extractFirst (a,_,_) = a
 
@@ -173,14 +177,14 @@ insNA x@(kx,dx,hx) m = if isNothing (Data.Map.lookup dx m) then insert dx x m
 
 -- Auxiliary function to link two nodes
 link :: Ord a => FHNode a -> FHNode a -> FHNode a
-link x@(kx,dx,(FHeap nx wx)) y@(ky,dy,(FHeap ny wy)) = if kx <= ky then (kx, dx+1, FHeap (nx+ny) (insertN y (FHeap nx wx)))
-                                                                   else (ky, dx+1, FHeap (ny+nx) (insertN x (FHeap ny wy)))                                                           
+link x@(kx,dx,(FHeap nx wx)) y@(ky,dy,(FHeap ny wy)) = if kx <= ky then (kx, dx+1, FHeap (nx+ny+1) (insertN y (FHeap nx wx)))
+                                                                   else (ky, dx+1, FHeap (ny+nx+1) (insertN x (FHeap ny wy)))                                                           
 
 -- Auxiliary function to insert a node into a heap and return a wheel
 insertN :: Ord a => FHNode a -> FibHeap a -> Wheel (FHNode a) 
-insertN x@(kx,dx,hx) h@(FHeap n (wx,wy)) = if (isEmptyW (wx,wy)) then ([x],[])
-                                                                 else if kx < minimumFH h then insertW x (wx,wy)
-                                                                                          else (wx++[x],wy) 
+insertN x@(kx,dx,hx) h@(FHeap n w) = if (isEmptyW w) then ([x],[])
+                                                                 else if kx < minimumFH h then insertW x w
+                                                                                          else rightW (insertW x w) 
 
 -- Auxiliary function to extract a node value from a Maybe
 extractNode :: Maybe (FHNode a) -> FHNode a
@@ -190,10 +194,3 @@ extractNode (Just n) = n
 isNothing :: Maybe a -> Bool
 isNothing Nothing = True
 isNothing _ = False
-
-
-
-
-
-
-
