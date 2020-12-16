@@ -43,6 +43,8 @@ type Wheel a = ([a],[a])
 
 -- read the head element
 readW :: Wheel a -> a
+readW ([],[]) = error "Wheel is empty"
+readW ([],_) = error "No head of list set"
 readW ((x:xs),_) = x
 
 -- wheel containing no elements
